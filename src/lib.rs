@@ -1,2 +1,2 @@
 mod qualcosa;
-use qualcosa::*;
+pub use qualcosa::*;
