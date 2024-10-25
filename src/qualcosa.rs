@@ -1,7 +1,22 @@
 #![deny(dead_code, missing_docs, missing_debug_implementations)]
 
+use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::str::Utf8Error;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+/// Custom error types
+pub enum QualcosaErrorTypes {
+    #[error("file reading error")]
+    /// Error type for general io errors
+    DefaultError(#[from] std::io::Error),
+
+    #[error("parsing error")]
+    /// Error type for UTF8 parsing
+    UTF8Error(#[from] std::string::FromUtf8Error),
+}
 
 #[derive(Clone, Debug)]
 /// We define the HexDump struct
@@ -38,14 +53,18 @@ impl HexDump {
     }
 
     /// Method to fill the HexDump object with the bytes read from the file
-    pub fn fill_bytes(&mut self, file: &File, store_strings: bool) {
+    pub fn fill_bytes(
+        &mut self,
+        file: &File,
+        store_strings: bool,
+    ) -> Result<(), QualcosaErrorTypes> {
         let mut f = BufReader::new(file);
         let mut buf = Vec::<u8>::new();
-        while f.read_until(b'\n', &mut buf).expect("read_until failed!") != 0 {
-            let s = String::from_utf8(buf).expect("from_utf8 failed");
-            for c in s.chars() {
+        while f.read_until(b'\n', &mut buf)? != 0 {
+            let s = String::from_utf8(buf)?;
+            for c in s.bytes() {
                 println!("Character: {}", c);
-                self.bytes.push(c as u8);
+                self.bytes.push(c);
             }
             buf = s.into_bytes();
             buf.clear();
@@ -59,6 +78,8 @@ impl HexDump {
                 .map(|byte| format!("{:02X}", byte))
                 .collect();
         }
+
+        Ok(())
     }
 
     /// Method to get a reference to the stored bytes in numerical value
