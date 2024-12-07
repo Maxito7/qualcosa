@@ -1,8 +1,8 @@
 extern crate qualcosa;
 
 #[cfg(test)]
-
 pub mod tests {
+    use core::fmt;
     use std::fs::File;
     use std::io::{self};
 
@@ -17,7 +17,7 @@ pub mod tests {
         hex_dump.fill_bytes(&file, true);
         hex_dump.print_bytes_str();
         //assert_eq!(hex_dump.get_bytes_str(), &["FF", "02", "01", "03", "07"]);
-
+        println!("{}", hex_dump);
         Ok(())
     }
 }

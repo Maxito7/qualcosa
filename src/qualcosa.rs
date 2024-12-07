@@ -1,9 +1,8 @@
 #![deny(dead_code, missing_docs, missing_debug_implementations)]
 
-use std::error::Error;
+use core::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::str::Utf8Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,7 +12,7 @@ pub enum QualcosaErrorTypes {
     /// Error type for general io errors
     DefaultError(#[from] std::io::Error),
 
-    #[error("parsing error")]
+    #[error("utf8 parsing error")]
     /// Error type for UTF8 parsing
     UTF8Error(#[from] std::string::FromUtf8Error),
 }
@@ -22,7 +21,7 @@ pub enum QualcosaErrorTypes {
 /// We define the HexDump struct
 pub struct HexDump {
     bytes: Vec<u8>,
-    bytes_str: Vec<String>,
+    bytes_str: Vec<String>, // TODO: Replace `String` for `[u8; 2]` for a more accurate representation of what's stored
     total_bytes: u64,
     strings: Vec<char>,
 }
@@ -97,5 +96,14 @@ impl HexDump {
         for byte in &self.bytes_str {
             println!("{:?}", byte)
         }
+    }
+}
+
+impl fmt::Display for HexDump {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+        for byte in &self.bytes {
+            write!(f, "{:02X}", byte)?;
+        }
+        Ok(())
     }
 }
